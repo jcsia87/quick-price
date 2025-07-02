@@ -12,17 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     searchInput.addEventListener('input', () => {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value;
 
-        if (searchTerm === '') {
+        // Clear table if search input is empty
+        if (searchTerm.trim() === '') {
             resultTableBody.innerHTML = '';
+            return;
+        }
+
+        let regex;
+        try {
+            regex = new RegExp(searchTerm, 'i'); // 'i' for case-insensitive
+        } catch (e) {
+            resultTableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Invalid regex pattern</td></tr>`;
             return;
         }
 
         fetch('/data')
             .then(response => response.json())
             .then(data => {
-                const filteredData = data.filter(item => item.Description.toLowerCase().includes(searchTerm));
+                const filteredData = data.filter(item => regex.test(item.Description));
 
                 resultTableBody.innerHTML = '';
                 filteredData.forEach(item => {
