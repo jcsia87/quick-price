@@ -54,24 +54,7 @@
     </table>
   </main>
 
-  <!-- Keep your original script.js -->
+  <!-- Script files -->
   <script src="script.js"></script>
-
-  <!-- Only add this extra script for blur toggle -->
-  <script>
-    function toggleBlur() {
-      const cells = document.querySelectorAll('.material-cost-cell');
-      const icon = document.getElementById('eyeIcon');
-      let isBlurred = false;
-
-      cells.forEach(cell => {
-        cell.classList.toggle('blurred');
-        if (cell.classList.contains('blurred')) isBlurred = true;
-      });
-
-      icon.classList.remove('fa-eye', 'fa-eye-slash');
-      icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
-    }
-  </script>
 </body>
 </html>

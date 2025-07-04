@@ -1,3 +1,18 @@
+let isBlurred = true; // Track blur state globally
+
+function toggleBlur() {
+  const cells = document.querySelectorAll('.material-cost-cell');
+  const icon = document.getElementById('eyeIcon');
+  isBlurred = !isBlurred;
+
+  cells.forEach(cell => {
+    cell.classList.toggle('blurred', isBlurred);
+  });
+
+  icon.classList.remove('fa-eye', 'fa-eye-slash');
+  icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('searchInput');
   const resultTableBody = document.getElementById('resultTableBody');
@@ -39,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td class="p-3">${item.Description}</td>
-            <td class="p-3 material-cost-cell blurred">${item['Material Cost']}</td>
+            <td class="p-3 material-cost-cell ${isBlurred ? 'blurred' : ''}">${item['Material Cost']}</td>
             <td class="p-3">${item.Wholesale}</td>
             <td class="p-3">${item.Retail}</td>
           `;
