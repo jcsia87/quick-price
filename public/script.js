@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td class="p-3">${item.Description}</td>
-            <td class="p-3">${item['Material Cost']}</td>
+            <td class="p-3 material-cost-cell blurred">${item['Material Cost']}</td>
             <td class="p-3">${item.Wholesale}</td>
             <td class="p-3">${item.Retail}</td>
           `;

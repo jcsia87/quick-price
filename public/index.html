@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Judson Product Search</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome for eye icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .blurred {
+      filter: blur(5px);
+    }
+    .eye-icon {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen px-4 py-8">
   <header class="max-w-4xl mx-auto mb-6">
@@ -22,7 +36,14 @@
       <thead class="bg-gray-800 text-gray-300">
         <tr>
           <th class="p-3 border-b border-gray-700">Description</th>
-          <th class="p-3 border-b border-gray-700">Material Cost</th>
+          <th class="p-3 border-b border-gray-700">
+            <div class="flex items-center gap-2">
+              <span>Material Cost</span>
+              <button onclick="toggleBlur()" title="Toggle Blur" class="eye-icon">
+                <i id="eyeIcon" class="fas fa-eye-slash"></i>
+              </button>
+            </div>
+          </th>
           <th class="p-3 border-b border-gray-700">Wholesale</th>
           <th class="p-3 border-b border-gray-700">Retail</th>
         </tr>
@@ -33,6 +54,24 @@
     </table>
   </main>
 
+  <!-- Keep your original script.js -->
   <script src="script.js"></script>
+
+  <!-- Only add this extra script for blur toggle -->
+  <script>
+    function toggleBlur() {
+      const cells = document.querySelectorAll('.material-cost-cell');
+      const icon = document.getElementById('eyeIcon');
+      let isBlurred = false;
+
+      cells.forEach(cell => {
+        cell.classList.toggle('blurred');
+        if (cell.classList.contains('blurred')) isBlurred = true;
+      });
+
+      icon.classList.remove('fa-eye', 'fa-eye-slash');
+      icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
+    }
+  </script>
 </body>
 </html>
