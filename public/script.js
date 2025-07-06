@@ -1,4 +1,4 @@
-let isBlurred = true; // Track blur state globally
+let isBlurred = true;
 
 function toggleBlur() {
   const cells = document.querySelectorAll('.material-cost-cell');
@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/data')
       .then(response => response.json())
       .then(data => {
-        const filteredData = data.filter(item => regex.test(item.Description));
+        const filteredData = data.filter(item => regex.test(item.Description || ''));
+
         resultTableBody.innerHTML = '';
 
         if (filteredData.length === 0) {
@@ -53,10 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredData.forEach(item => {
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td class="p-3">${item.Description}</td>
-            <td class="p-3 material-cost-cell ${isBlurred ? 'blurred' : ''}">${item['Material Cost']}</td>
-            <td class="p-3">${item.Wholesale}</td>
-            <td class="p-3">${item.Retail}</td>
+            <td class="p-3">${item.Description || ''}</td>
+            <td class="p-3 material-cost-cell ${isBlurred ? 'blurred' : ''}">${item['Material Cost'] || ''}</td>
+            <td class="p-3">${item.Wholesale || ''}</td>
+            <td class="p-3">${item.Retail || ''}</td>
           `;
           resultTableBody.appendChild(row);
         });

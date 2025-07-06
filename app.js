@@ -1,21 +1,33 @@
 const express = require('express');
-const xlsx = require('xlsx');
+const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const app = express();
 const port = 3001;
 
-// Read and parse the Excel file
-const workbook = xlsx.readFile("C:\\Users\\sia_j\\OneDrive\\Desktop\\Judson Pricelist.xlsx");
-const sheet_name_list = workbook.SheetNames;
-const sheet = workbook.Sheets[sheet_name_list[0]];
-const data = xlsx.utils.sheet_to_json(sheet);
+// Connect to SQLite database
+const db = new sqlite3.Database('judsondb.db', (err) => {
+    if (err) {
+        console.error('Error connecting to SQLite DB:', err.message);
+    } else {
+        console.log('Connected to SQLite database.');
+    }
+});
 
-// Serve static files
-// app.use(express.static('public'));
-app.use(express.static(__dirname + '/public'));
+// Serve static files from "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
 
+// API endpoint to fetch filtered columns from "pricelist"
 app.get('/data', (req, res) => {
-    res.json(data);
+    const query = `SELECT Description, "Material Cost", Wholesale, Retail FROM pricelist`;
+
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('SQLite error:', err.message);
+            res.status(500).json({ error: err.message });
+        } else {
+            res.json(rows);
+        }
+    });
 });
 
 app.listen(port, () => {
