@@ -16,11 +16,13 @@ function toggleBlur() {
 function showMainUI() {
   document.getElementById('loginForm').classList.add('hidden');
   document.getElementById('mainUI').classList.remove('hidden');
+  document.getElementById('loginError').classList.add('hidden'); // Clear error
 }
 
 function showLogin() {
   document.getElementById('loginForm').classList.remove('hidden');
   document.getElementById('mainUI').classList.add('hidden');
+  document.getElementById('loginError').classList.add('hidden'); // Clear error
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginError = document.getElementById('loginError');
   const searchInput = document.getElementById('searchInput');
   const resultTableBody = document.getElementById('resultTableBody');
+
+  // Hide both UIs and error initially
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('mainUI').classList.add('hidden');
+  loginError.classList.add('hidden');
 
   // Check auth status on load
   fetch('/check-auth', { credentials: 'include' })
@@ -43,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    loginError.classList.add('hidden'); // Always hide error before login attempt
     fetch('/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
