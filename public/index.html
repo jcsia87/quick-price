@@ -32,38 +32,50 @@
 <body class="bg-gray-900 text-white min-h-screen px-4 py-8">
   <header class="max-w-4xl mx-auto mb-8">
     <h1 class="text-4xl font-bold text-center mb-6 tracking-wide">Judson Product Search</h1>
-    <input
-      type="text"
-      id="searchInput"
-      class="w-full p-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-      placeholder="Search for a product..."
-    />
+    <!-- Login Form -->
+    <form id="loginForm" class="mb-6 max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col gap-4">
+      <label for="password" class="text-lg font-semibold">Enter Password to Access:</label>
+      <input type="password" id="password" class="p-3 rounded bg-gray-700 text-white focus:outline-none" placeholder="Password" required />
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Login</button>
+      <div id="loginError" class="text-red-400 text-center hidden"></div>
+    </form>
   </header>
 
-  <main class="w-full overflow-x-auto">
-    <div class="min-w-[600px] max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg">
-      <table class="w-full text-left border-collapse bg-gray-800">
-        <thead class="bg-gray-700 text-gray-300">
-          <tr>
-            <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">Description</th>
-            <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">
-              <div class="flex items-center gap-2">
-                <span>Material Cost</span>
-                <button onclick="toggleBlur()" title="Toggle Blur" class="eye-icon">
-                  <i id="eyeIcon" class="fas fa-eye-slash"></i>
-                </button>
-              </div>
-            </th>
-            <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Wholesale</th>
-            <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Retail</th>
-          </tr>
-        </thead>
-        <tbody id="resultTableBody" class="divide-y divide-gray-700">
-          <!-- Dynamic rows will be inserted here -->
-        </tbody>
-      </table>
-    </div>
-  </main>
+  <!-- Main UI hidden until login -->
+  <div id="mainUI" class="hidden">
+    <header class="max-w-4xl mx-auto mb-8">
+      <input
+        type="text"
+        id="searchInput"
+        class="w-full p-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        placeholder="Search for a product..."
+      />
+    </header>
+    <main class="w-full overflow-x-auto">
+      <div class="min-w-[600px] max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg">
+        <table class="w-full text-left border-collapse bg-gray-800">
+          <thead class="bg-gray-700 text-gray-300">
+            <tr>
+              <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">Description</th>
+              <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">
+                <div class="flex items-center gap-2">
+                  <span>Material Cost</span>
+                  <button onclick="toggleBlur()" title="Toggle Blur" class="eye-icon">
+                    <i id="eyeIcon" class="fas fa-eye-slash"></i>
+                  </button>
+                </div>
+              </th>
+              <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Wholesale</th>
+              <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Retail</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody" class="divide-y divide-gray-700">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
 
   <script>
     function toggleBlur() {
@@ -73,6 +85,29 @@
       icon.classList.toggle('fa-eye');
       icon.classList.toggle('fa-eye-slash');
     }
+
+    // Login form handling
+    const loginForm = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('password');
+    const searchInput = document.getElementById('searchInput');
+    const loginError = document.getElementById('loginError');
+    const mainUI = document.getElementById('mainUI');
+
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const password = passwordInput.value.trim();
+
+      // For demonstration, the password is hard-coded to "judson"
+      if (password === 'judson') {
+        // Hide the login form and show the main UI
+        loginForm.classList.add('hidden');
+        mainUI.classList.remove('hidden');
+      } else {
+        // Show error message
+        loginError.textContent = 'Invalid password, please try again.';
+        loginError.classList.remove('hidden');
+      }
+    });
   </script>
   <script src="script.js"></script>
 </body>

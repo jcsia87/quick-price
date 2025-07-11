@@ -13,9 +13,60 @@ function toggleBlur() {
   icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
 }
 
+function showMainUI() {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('mainUI').classList.remove('hidden');
+}
+
+function showLogin() {
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('mainUI').classList.add('hidden');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.getElementById('loginForm');
+  const passwordInput = document.getElementById('password');
+  const loginError = document.getElementById('loginError');
   const searchInput = document.getElementById('searchInput');
   const resultTableBody = document.getElementById('resultTableBody');
+
+  // Check auth status on load
+  fetch('/check-auth', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.authenticated) {
+        showMainUI();
+      } else {
+        showLogin();
+      }
+    });
+
+  loginForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: passwordInput.value }),
+      credentials: 'include' // <-- send cookies
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Invalid password');
+        return res.json();
+      })
+      .then(data => {
+        if (data.success) {
+          showMainUI();
+          loginError.classList.add('hidden');
+        } else {
+          loginError.textContent = data.message || 'Login failed';
+          loginError.classList.remove('hidden');
+        }
+      })
+      .catch(() => {
+        loginError.textContent = 'Invalid password';
+        loginError.classList.remove('hidden');
+      });
+  });
 
   searchInput.addEventListener('input', () => {
     const searchTerm = searchInput.value.trim();
@@ -36,8 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    fetch('/data')
-      .then(response => response.json())
+    fetch('/data', { credentials: 'include' }) // <-- send cookies
+      .then(response => {
+        if (!response.ok) throw new Error('Unauthorized');
+        return response.json();
+      })
       .then(data => {
         const filteredData = data.filter(item => regex.test(item.Description || ''));
 
@@ -63,11 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       })
       .catch(err => {
-        console.error(err);
-        resultTableBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="text-red-400 text-center py-4">Error fetching data</td>
-          </tr>`;
+        if (err.message === 'Unauthorized') {
+          showLogin();
+          loginError.textContent = 'Session expired. Please log in again.';
+          loginError.classList.remove('hidden');
+        } else {
+          resultTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-red-400 text-center py-4">Error fetching data</td>
+            </tr>`;
+        }
       });
   });
 });

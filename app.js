@@ -1,8 +1,21 @@
 const express = require('express');
+const session = require('express-session');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const app = express();
 const port = 3001;
+
+// Middleware for parsing JSON and urlencoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Session setup
+app.use(session({
+    secret: 'your-strong-secret', // Change this to a strong secret in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 4 * 60 * 60 * 1000 } // 4 hours
+}));
 
 // Connect to SQLite database
 const db = new sqlite3.Database('judsondb.db', (err) => {
@@ -16,8 +29,40 @@ const db = new sqlite3.Database('judsondb.db', (err) => {
 // Serve static files from "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API endpoint to fetch filtered columns from "pricelist"
-app.get('/data', (req, res) => {
+// Simple password (change this in production)
+const PASSWORD = 'judson2025';
+
+// Login endpoint
+app.post('/login', (req, res) => {
+    const { password } = req.body;
+    if (password === PASSWORD) {
+        req.session.authenticated = true;
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid password' });
+    }
+});
+
+// Check authentication status endpoint
+app.get('/check-auth', (req, res) => {
+    if (req.session && req.session.authenticated) {
+        res.json({ authenticated: true });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+// Middleware to protect routes
+function requireAuth(req, res, next) {
+    if (req.session && req.session.authenticated) {
+        next();
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+}
+
+// API endpoint to fetch filtered columns from "pricelist" (protected)
+app.get('/data', requireAuth, (req, res) => {
     const query = `SELECT Description, "Material Cost", Wholesale, Retail FROM pricelist`;
 
     db.all(query, [], (err, rows) => {
