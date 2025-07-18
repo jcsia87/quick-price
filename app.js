@@ -63,9 +63,14 @@ function requireAuth(req, res, next) {
 
 // API endpoint to fetch filtered columns from "pricelist" (protected)
 app.get('/data', requireAuth, (req, res) => {
-    const query = `SELECT Description, "Material Cost", Wholesale, Retail FROM pricelist`;
-
-    db.all(query, [], (err, rows) => {
+    const search = (req.query.search || '').trim();
+    let sql = `SELECT Description, "Material Cost", Wholesale, Retail FROM pricelist`;
+    let params = [];
+    if (search) {
+        sql += ` WHERE Description LIKE ?`;
+        params.push(`%${search}%`);
+    }
+    db.all(sql, params, (err, rows) => {
         if (err) {
             console.error('SQLite error:', err.message);
             res.status(500).json({ error: err.message });

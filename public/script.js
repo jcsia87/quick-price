@@ -93,28 +93,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    let regex;
-    try {
-      regex = new RegExp(searchTerm, 'i');
-    } catch (e) {
-      resultTableBody.innerHTML = `
-        <tr>
-          <td colspan="4" class="text-red-400 text-center py-4">Invalid regex pattern</td>
-        </tr>`;
-      return;
-    }
 
-    fetch('/data', { credentials: 'include' }) // <-- send cookies
+    fetch(`/data?search=${encodeURIComponent(searchTerm)}`, { credentials: 'include' })
       .then(response => {
         if (!response.ok) throw new Error('Unauthorized');
         return response.json();
       })
       .then(data => {
-        const filteredData = data.filter(item => regex.test(item.Description || ''));
-
         resultTableBody.innerHTML = '';
 
-        if (filteredData.length === 0) {
+        if (data.length === 0) {
           resultTableBody.innerHTML = `
             <tr>
               <td colspan="4" class="text-center text-gray-400 py-4">No matching results</td>
@@ -122,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        filteredData.forEach(item => {
+        data.forEach(item => {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td class="p-3">${item.Description || ''}</td>
