@@ -76,7 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
-  searchInput.addEventListener('input', () => {
+  // Debounce function
+  function debounce(fn, delay) {
+    let timer = null;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  function handleSearch() {
     const searchTerm = searchInput.value.trim();
 
     if (searchTerm === '') {
@@ -136,5 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>`;
         }
       });
-  });
+  }
+
+  searchInput.addEventListener('input', debounce(handleSearch, 300));
 });
