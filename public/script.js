@@ -13,10 +13,26 @@ function toggleBlur() {
   icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
 }
 
+async function loadDatabaseInfo() {
+  const dbCreatedAt = document.getElementById('dbCreatedAt');
+  if (!dbCreatedAt) return;
+
+  try {
+    const response = await fetch('/db-info', { credentials: 'include' });
+    const data = await response.json();
+    dbCreatedAt.textContent = data.createdAt ? `Database created: ${data.createdAt}` : 'Database created date unavailable';
+    dbCreatedAt.classList.remove('hidden');
+  } catch (error) {
+    dbCreatedAt.textContent = 'Database created date unavailable';
+    dbCreatedAt.classList.remove('hidden');
+  }
+}
+
 function showMainUI() {
   document.getElementById('loginForm').classList.add('hidden');
   document.getElementById('mainUI').classList.remove('hidden');
   document.getElementById('loginError').classList.add('hidden'); // Clear error
+  loadDatabaseInfo();
 }
 
 function showLogin() {

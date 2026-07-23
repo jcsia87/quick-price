@@ -1,9 +1,11 @@
 const express = require('express');
 const session = require('express-session');
 const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 const path = require('path');
 const app = express();
 const port = 3001;
+const dbPath = path.join(__dirname, 'judsondb.db');
 
 // Middleware for parsing JSON and urlencoded data
 app.use(express.json());
@@ -17,8 +19,19 @@ app.use(session({
     cookie: { maxAge: 4 * 60 * 60 * 1000 } // 4 hours
 }));
 
+function formatFriendlyDate(date) {
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const suffix = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${month} ${day}, ${year} ${hours}:${minutes}${suffix}`;
+}
+
 // Connect to SQLite database
-const db = new sqlite3.Database('judsondb.db', (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error connecting to SQLite DB:', err.message);
     } else {
@@ -49,6 +62,17 @@ app.get('/check-auth', (req, res) => {
         res.json({ authenticated: true });
     } else {
         res.json({ authenticated: false });
+    }
+});
+
+app.get('/db-info', (req, res) => {
+    try {
+        const stats = fs.statSync(dbPath);
+        const createdAt = stats.birthtime || stats.ctime || stats.mtime;
+        res.json({ createdAt: formatFriendlyDate(createdAt) });
+    } catch (error) {
+        console.error('Unable to read database file info:', error.message);
+        res.status(500).json({ error: 'Unable to read database info.' });
     }
 });
 

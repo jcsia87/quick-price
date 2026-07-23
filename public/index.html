@@ -31,7 +31,8 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen px-4 py-8">
   <header class="max-w-4xl mx-auto mb-8">
-    <h1 class="text-4xl font-bold text-center mb-6 tracking-wide">Judson Product Search</h1>
+    <h1 class="text-4xl font-bold text-center mb-2 tracking-wide">Judson Product Search</h1>
+    <p id="dbCreatedAt" class="hidden text-center text-sm text-gray-400">Loading database date…</p>
     <!-- Login Form -->
     <form id="loginForm" class="mb-6 max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col gap-4">
       <label for="password" class="text-lg font-semibold">Enter Password to Access:</label>
@@ -77,38 +78,6 @@
     </main>
   </div>
 
-  <script>
-    function toggleBlur() {
-      const rows = document.querySelectorAll('#resultTableBody td:nth-child(2)');
-      const icon = document.getElementById('eyeIcon');
-      rows.forEach(cell => cell.classList.toggle('blurred'));
-      icon.classList.toggle('fa-eye');
-      icon.classList.toggle('fa-eye-slash');
-    }
-
-    // Login form handling
-    const loginForm = document.getElementById('loginForm');
-    const passwordInput = document.getElementById('password');
-    const searchInput = document.getElementById('searchInput');
-    const loginError = document.getElementById('loginError');
-    const mainUI = document.getElementById('mainUI');
-
-    loginForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const password = passwordInput.value.trim();
-
-      // For demonstration, the password is hard-coded to "judson"
-      if (password === 'judson') {
-        // Hide the login form and show the main UI
-        loginForm.classList.add('hidden');
-        mainUI.classList.remove('hidden');
-      } else {
-        // Show error message
-        loginError.textContent = 'Invalid password, please try again.';
-        loginError.classList.remove('hidden');
-      }
-    });
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
