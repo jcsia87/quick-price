@@ -1,4 +1,30 @@
 let isBlurred = true;
+const THEME_STORAGE_KEY = 'quick-price-theme';
+
+function applyTheme(theme) {
+  document.body.classList.toggle('theme-light', theme === 'light');
+
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+
+  if (themeToggle) {
+    themeToggle.setAttribute('aria-pressed', String(theme === 'light'));
+    const label = themeToggle.querySelector('span');
+    if (label) {
+      label.textContent = theme === 'light' ? 'Dark theme' : 'Light theme';
+    }
+  }
+
+  if (themeIcon) {
+    themeIcon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  applyTheme(nextTheme);
+}
 
 function toggleBlur() {
   const cells = document.querySelectorAll('.material-cost-cell');
@@ -43,10 +69,19 @@ function showLogin() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
+  const themeToggle = document.getElementById('themeToggle');
   const passwordInput = document.getElementById('password');
   const loginError = document.getElementById('loginError');
   const searchInput = document.getElementById('searchInput');
   const resultTableBody = document.getElementById('resultTableBody');
+
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(savedTheme || (prefersLight ? 'light' : 'dark'));
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
 
   // Hide both UIs and error initially
   document.getElementById('loginForm').classList.add('hidden');

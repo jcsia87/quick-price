@@ -1,26 +1,79 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1 {
-    font-size: 2.5rem;
-    color: #343a40;
+body.theme-light {
+    background-color: #f3f4f6;
+    color: #111827;
 }
 
-#searchInput {
-    font-size: 1.2rem;
+body.theme-light .bg-gray-900 {
+    background-color: #ffffff !important;
 }
 
-.table {
-    margin-top: 20px;
+body.theme-light .bg-gray-800 {
+    background-color: #f9fafb !important;
 }
 
-.table th, .table td {
-    text-align: center;
+body.theme-light .bg-gray-700 {
+    background-color: #f3f4f6 !important;
 }
 
-.table thead th {
-    background-color: #343a40;
-    color: white;
+body.theme-light .bg-gray-600 {
+    background-color: #e5e7eb !important;
+}
+
+body.theme-light .text-white {
+    color: #111827 !important;
+}
+
+body.theme-light .text-gray-400 {
+    color: #6b7280 !important;
+}
+
+body.theme-light .text-gray-300 {
+    color: #374151 !important;
+}
+
+body.theme-light .placeholder-gray-400::placeholder {
+    color: #6b7280 !important;
+}
+
+body.theme-light .border-gray-600 {
+    border-color: #d1d5db !important;
+}
+
+body.theme-light .divide-gray-700 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #e5e7eb !important;
+}
+
+body.theme-light .theme-toggle {
+    background-color: #e5e7eb;
+    color: #111827;
+}
+
+body.theme-light .theme-toggle:hover {
+    background-color: #d1d5db;
+}
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.6rem 1rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
 }
