@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const loginError = document.getElementById('loginError');
   const searchInput = document.getElementById('searchInput');
+  const clearSearchButton = document.getElementById('clearSearchButton');
   const resultTableBody = document.getElementById('resultTableBody');
 
   const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -126,6 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loginError.classList.remove('hidden');
       });
   });
+
+  function updateClearButtonVisibility() {
+    if (clearSearchButton) {
+      clearSearchButton.classList.toggle('hidden', searchInput.value.trim() === '');
+    }
+  }
 
   // Debounce function
   function debounce(fn, delay) {
@@ -186,5 +193,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  searchInput.addEventListener('input', debounce(handleSearch, 300));
+  const debouncedHandleSearch = debounce(handleSearch, 300);
+
+  updateClearButtonVisibility();
+
+  if (clearSearchButton) {
+    clearSearchButton.addEventListener('click', () => {
+      searchInput.value = '';
+      updateClearButtonVisibility();
+      resultTableBody.innerHTML = '';
+      searchInput.focus();
+    });
+  }
+
+  searchInput.addEventListener('input', () => {
+    updateClearButtonVisibility();
+    debouncedHandleSearch();
+  });
 });

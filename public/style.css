@@ -77,3 +77,34 @@ body.theme-light .theme-toggle:hover {
     outline: 2px solid #60a5fa;
     outline-offset: 2px;
 }
+
+.clear-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: 9999px;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.clear-search-btn:hover,
+.clear-search-btn:focus-visible {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    outline: none;
+}
+
+body.theme-light .clear-search-btn {
+    color: #6b7280;
+}
+
+body.theme-light .clear-search-btn:hover,
+body.theme-light .clear-search-btn:focus-visible {
+    background-color: rgba(15, 23, 42, 0.08);
+    color: #111827;
+}

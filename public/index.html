@@ -52,12 +52,22 @@
   <!-- Main UI hidden until login -->
   <div id="mainUI" class="hidden">
     <header class="max-w-4xl mx-auto mb-8">
-      <input
-        type="text"
-        id="searchInput"
-        class="w-full p-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-        placeholder="Search for a product..."
-      />
+      <div class="relative">
+        <input
+          type="text"
+          id="searchInput"
+          class="w-full p-4 pr-12 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          placeholder="Search for a product..."
+        />
+        <button
+          type="button"
+          id="clearSearchButton"
+          class="clear-search-btn absolute right-3 top-1/2 -translate-y-1/2 hidden"
+          aria-label="Clear search"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </header>
     <main class="w-full overflow-x-auto">
       <div class="min-w-[600px] max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg">
