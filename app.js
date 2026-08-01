@@ -16,7 +16,11 @@ app.use(session({
     secret: 'your-strong-secret', // Change this to a strong secret in production
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 hours
+    cookie: {
+        maxAge: 8 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax'
+    }
 }));
 
 function formatFriendlyDate(date) {

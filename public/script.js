@@ -54,17 +54,32 @@ async function loadDatabaseInfo() {
   }
 }
 
+function setAuthView(isAuthenticated) {
+  const loginForm = document.getElementById('loginForm');
+  const mainUI = document.getElementById('mainUI');
+  const loginError = document.getElementById('loginError');
+  const dbCreatedAt = document.getElementById('dbCreatedAt');
+
+  if (!loginForm || !mainUI || !loginError || !dbCreatedAt) return;
+
+  loginForm.classList.toggle('hidden', isAuthenticated);
+  mainUI.classList.toggle('hidden', !isAuthenticated);
+  loginError.classList.add('hidden');
+
+  if (isAuthenticated) {
+    loadDatabaseInfo();
+  } else {
+    dbCreatedAt.classList.add('hidden');
+    dbCreatedAt.textContent = 'Loading database date…';
+  }
+}
+
 function showMainUI() {
-  document.getElementById('loginForm').classList.add('hidden');
-  document.getElementById('mainUI').classList.remove('hidden');
-  document.getElementById('loginError').classList.add('hidden'); // Clear error
-  loadDatabaseInfo();
+  setAuthView(true);
 }
 
 function showLogin() {
-  document.getElementById('loginForm').classList.remove('hidden');
-  document.getElementById('mainUI').classList.add('hidden');
-  document.getElementById('loginError').classList.add('hidden'); // Clear error
+  setAuthView(false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -85,9 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Hide both UIs and error initially
-  document.getElementById('loginForm').classList.add('hidden');
-  document.getElementById('mainUI').classList.add('hidden');
-  loginError.classList.add('hidden');
+  setAuthView(false);
 
   // Check auth status on load
   fetch('/check-auth', { credentials: 'include' })
