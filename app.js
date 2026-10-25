@@ -43,6 +43,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
+app.use('/vendor/fontawesome', express.static(path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free')));
+
 // Serve static files from "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
 

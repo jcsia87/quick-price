@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build:css": "tailwindcss -i ./tailwind.css -o ./public/tailwind.generated.css --minify",
+    "prestart": "npm run build:css",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -10,9 +13,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   }
 }
