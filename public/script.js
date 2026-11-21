@@ -1,5 +1,14 @@
 let isBlurred = true;
+let hideMaterialCost = false;
 const THEME_STORAGE_KEY = 'quick-price-theme';
+
+function applyMaterialCostVisibility(shouldHide) {
+  hideMaterialCost = Boolean(shouldHide);
+  const materialCostHeader = document.getElementById('materialCostHeader');
+  if (materialCostHeader) {
+    materialCostHeader.classList.toggle('hidden', hideMaterialCost);
+  }
+}
 
 function applyTheme(theme) {
   document.body.classList.toggle('theme-light', theme === 'light');
@@ -27,6 +36,7 @@ function toggleTheme() {
 }
 
 function toggleBlur() {
+  if (hideMaterialCost) return;
   const cells = document.querySelectorAll('.material-cost-cell');
   const icon = document.getElementById('eyeIcon');
   isBlurred = !isBlurred;
@@ -35,8 +45,10 @@ function toggleBlur() {
     cell.classList.toggle('blurred', isBlurred);
   });
 
-  icon.classList.remove('fa-eye', 'fa-eye-slash');
-  icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
+  if (icon) {
+    icon.classList.remove('fa-eye', 'fa-eye-slash');
+    icon.classList.add(isBlurred ? 'fa-eye-slash' : 'fa-eye');
+  }
 }
 
 async function loadDatabaseInfo() {
@@ -106,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/check-auth', { credentials: 'include' })
     .then(res => res.json())
     .then(data => {
+      applyMaterialCostVisibility(data.hideMaterialCost);
       if (data.authenticated) {
         showMainUI();
       } else {
@@ -128,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(data => {
         if (data.success) {
+          applyMaterialCostVisibility(data.hideMaterialCost);
           showMainUI();
           loginError.classList.add('hidden');
         } else {
@@ -172,20 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(data => {
         resultTableBody.innerHTML = '';
+        const columnCount = hideMaterialCost ? 3 : 4;
 
         if (data.length === 0) {
           resultTableBody.innerHTML = `
             <tr>
-              <td colspan="4" class="text-center text-gray-400 py-4">No matching results</td>
+              <td colspan="${columnCount}" class="text-center text-gray-400 py-4">No matching results</td>
             </tr>`;
           return;
         }
 
         data.forEach(item => {
           const row = document.createElement('tr');
+          const materialCostCell = hideMaterialCost
+            ? ''
+            : `<td class="p-3 material-cost-cell ${isBlurred ? 'blurred' : ''}">${item['Material Cost'] || ''}</td>`;
           row.innerHTML = `
             <td class="p-3">${item.Description || ''}</td>
-            <td class="p-3 material-cost-cell ${isBlurred ? 'blurred' : ''}">${item['Material Cost'] || ''}</td>
+            ${materialCostCell}
             <td class="p-3">${item.Wholesale || ''}</td>
             <td class="p-3">${item.Retail || ''}</td>
           `;
@@ -198,9 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
           loginError.textContent = 'Session expired. Please log in again.';
           loginError.classList.remove('hidden');
         } else {
+          const columnCount = hideMaterialCost ? 3 : 4;
           resultTableBody.innerHTML = `
             <tr>
-              <td colspan="4" class="text-red-400 text-center py-4">Error fetching data</td>
+              <td colspan="${columnCount}" class="text-red-400 text-center py-4">Error fetching data</td>
             </tr>`;
         }
       });

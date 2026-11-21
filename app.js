@@ -6,6 +6,9 @@ const path = require('path');
 const app = express();
 const port = 3001;
 const dbPath = path.join(__dirname, 'judsondb.db');
+const hideMaterialCost =
+    String(process.env.RENDER || '').toLowerCase() === 'true' ||
+    Boolean(process.env.RENDER_SERVICE_ID);
 
 // Middleware for parsing JSON and urlencoded data
 app.use(express.json());
@@ -56,7 +59,7 @@ app.post('/login', (req, res) => {
     const { password } = req.body;
     if (password === PASSWORD) {
         req.session.authenticated = true;
-        res.json({ success: true });
+        res.json({ success: true, hideMaterialCost });
     } else {
         res.status(401).json({ success: false, message: 'Invalid password' });
     }
@@ -65,9 +68,9 @@ app.post('/login', (req, res) => {
 // Check authentication status endpoint
 app.get('/check-auth', (req, res) => {
     if (req.session && req.session.authenticated) {
-        res.json({ authenticated: true });
+        res.json({ authenticated: true, hideMaterialCost });
     } else {
-        res.json({ authenticated: false });
+        res.json({ authenticated: false, hideMaterialCost });
     }
 });
 
@@ -94,7 +97,10 @@ function requireAuth(req, res, next) {
 // API endpoint to fetch filtered columns from "pricelist" (protected)
 app.get('/data', requireAuth, (req, res) => {
     const search = (req.query.search || '').trim();
-    let sql = `SELECT Description, "Material Cost", Wholesale, Retail FROM pricelist`;
+    const columns = hideMaterialCost
+        ? 'Description, Wholesale, Retail'
+        : 'Description, "Material Cost", Wholesale, Retail';
+    let sql = `SELECT ${columns} FROM pricelist`;
     let params = [];
     if (search) {
         sql += ` WHERE Description LIKE ?`;
