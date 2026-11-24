@@ -47,6 +47,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 app.use('/vendor/fontawesome', express.static(path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free')));
+app.use('/vendor/tanstack-table-core', express.static(path.join(__dirname, 'node_modules', '@tanstack', 'table-core', 'dist')));
+app.use('/vendor/tanstack-store', express.static(path.join(__dirname, 'node_modules', '@tanstack', 'store', 'dist')));
 
 // Serve static files from "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
