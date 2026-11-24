@@ -51,7 +51,7 @@
 
   <!-- Main UI hidden until login -->
   <div id="mainUI" class="hidden">
-    <header class="max-w-4xl mx-auto mb-8">
+    <header class="max-w-4xl mx-auto search-header">
       <div class="relative">
         <input
           type="text"
@@ -72,19 +72,18 @@
       </div>
     </header>
     <main class="w-full overflow-x-auto">
+      <div class="min-w-[600px] max-w-4xl mx-auto privacy-controls">
+        <button id="privacyToggle" type="button" onclick="togglePrivacyMode()" title="Show prices" aria-label="Privacy mode" aria-pressed="true" class="eye-icon privacy-toggle">
+          <i id="eyeIcon" class="fas fa-eye-slash" aria-hidden="true"></i>
+          <span>Privacy mode</span>
+        </button>
+      </div>
       <div class="min-w-[600px] max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg">
         <table class="w-full text-left border-collapse bg-gray-800">
           <thead class="bg-gray-700 text-gray-300">
             <tr>
               <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">Description</th>
-              <th id="materialCostHeader" class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">
-                <div class="flex items-center gap-2">
-                  <span>Material Cost</span>
-                  <button onclick="toggleBlur()" title="Toggle Blur" class="eye-icon">
-                    <i id="eyeIcon" class="fas fa-eye-slash"></i>
-                  </button>
-                </div>
-              </th>
+              <th id="materialCostHeader" class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[150px]">Material Cost</th>
               <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Wholesale</th>
               <th class="p-4 border-b border-gray-600 text-sm font-semibold tracking-wide min-w-[100px]">Retail</th>
             </tr>

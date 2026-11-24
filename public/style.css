@@ -57,6 +57,22 @@ body.theme-light .theme-toggle:hover {
     background-color: #d1d5db;
 }
 
+.privacy-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0.75rem auto;
+}
+
+.search-header {
+    margin-bottom: 0;
+}
+
+.privacy-toggle {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+}
+
 .theme-toggle {
     display: inline-flex;
     align-items: center;

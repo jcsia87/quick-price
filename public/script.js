@@ -35,15 +35,20 @@ function toggleTheme() {
   applyTheme(nextTheme);
 }
 
-function toggleBlur() {
-  if (hideMaterialCost) return;
-  const cells = document.querySelectorAll('.material-cost-cell');
+function togglePrivacyMode() {
+  const cells = document.querySelectorAll('.material-cost-cell, .wholesale-price-cell');
   const icon = document.getElementById('eyeIcon');
+  const toggle = document.getElementById('privacyToggle');
   isBlurred = !isBlurred;
 
   cells.forEach(cell => {
     cell.classList.toggle('blurred', isBlurred);
   });
+
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(isBlurred));
+    toggle.title = isBlurred ? 'Show prices' : 'Hide prices';
+  }
 
   if (icon) {
     icon.classList.remove('fa-eye', 'fa-eye-slash');
@@ -204,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
           row.innerHTML = `
             <td class="p-3">${item.Description || ''}</td>
             ${materialCostCell}
-            <td class="p-3">${item.Wholesale || ''}</td>
+            <td class="p-3 wholesale-price-cell ${isBlurred ? 'blurred' : ''}">${item.Wholesale || ''}</td>
             <td class="p-3">${item.Retail || ''}</td>
           `;
           resultTableBody.appendChild(row);
