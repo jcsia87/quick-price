@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session');
-const sqlite3 = require('sqlite3').verbose();
+const { DatabaseSync } = require('node:sqlite');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
@@ -105,19 +105,18 @@ app.get('/data', requireAuth, (req, res) => {
         ? 'Description, Wholesale, Retail'
         : 'Description, "Material Cost", Wholesale, Retail';
     let sql = `SELECT ${columns} FROM pricelist`;
-    let params = [];
+    const params = [];
     if (search) {
         sql += ` WHERE Description LIKE ?`;
         params.push(`%${search}%`);
     }
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            console.error('SQLite error:', err.message);
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json(rows);
-        }
-    });
+    try {
+        const rows = db.prepare(sql).all(...params);
+        res.json(rows);
+    } catch (err) {
+        console.error('SQLite error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 function getR2Config() {
@@ -194,21 +193,14 @@ async function downloadDatabaseFromR2() {
 }
 
 function openLocalDatabase() {
-    return new Promise((resolve, reject) => {
-        const connection = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                console.log('Connected to local SQLite database.');
-                resolve(connection);
-            }
-        });
-    });
+    const connection = new DatabaseSync(dbPath);
+    console.log('Connected to local SQLite database.');
+    return connection;
 }
 
 async function start() {
     await downloadDatabaseFromR2();
-    db = await openLocalDatabase();
+    db = openLocalDatabase();
 
     app.listen(port, () => {
         console.log(`App is listening at http://localhost:${port}`);
