@@ -1,11 +1,14 @@
 const express = require('express');
 const session = require('express-session');
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@libsql/client');
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = express();
 const port = 3001;
-const dbPath = path.join(__dirname, 'judsondb.db');
+const dbPath = path.join(__dirname, '.cache', 'judsondb.db');
+const tursoUrl = process.env.TURSO_DATABASE_URL || 'libsql://judsondb-jcsia87.aws-ap-southeast-1.turso.io';
 const hideMaterialCost =
     String(process.env.RENDER || '').toLowerCase() === 'true' ||
     Boolean(process.env.RENDER_SERVICE_ID);
@@ -37,14 +40,7 @@ function formatFriendlyDate(date) {
     return `${month} ${day}, ${year} ${hours}:${minutes}${suffix}`;
 }
 
-// Connect to SQLite database
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error connecting to SQLite DB:', err.message);
-    } else {
-        console.log('Connected to SQLite database.');
-    }
-});
+let db;
 
 app.use('/vendor/fontawesome', express.static(path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free')));
 app.use('/vendor/tanstack-table-core', express.static(path.join(__dirname, 'node_modules', '@tanstack', 'table-core', 'dist')));
@@ -97,7 +93,7 @@ function requireAuth(req, res, next) {
 }
 
 // API endpoint to fetch filtered columns from "pricelist" (protected)
-app.get('/data', requireAuth, (req, res) => {
+app.get('/data', requireAuth, async (req, res) => {
     const search = (req.query.search || '').trim();
     const columns = hideMaterialCost
         ? 'Description, Wholesale, Retail'
@@ -108,16 +104,41 @@ app.get('/data', requireAuth, (req, res) => {
         sql += ` WHERE Description LIKE ?`;
         params.push(`%${search}%`);
     }
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            console.error('SQLite error:', err.message);
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json(rows);
-        }
-    });
+    try {
+        const result = await db.execute({ sql, args: params });
+        res.json(result.rows);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Turso query error:', message);
+        res.status(500).json({ error: message });
+    }
 });
 
-app.listen(port, () => {
-    console.log(`App is listening at http://localhost:${port}`);
+async function start() {
+    const authToken = process.env.TURSO_AUTH_TOKEN;
+    if (!authToken) {
+        throw new Error('TURSO_AUTH_TOKEN must be set to connect to the Turso database.');
+    }
+
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    db = createClient({
+        url: pathToFileURL(dbPath).href,
+        syncUrl: tursoUrl,
+        authToken
+    });
+    await db.sync();
+    console.log('Synchronized local database with Turso.');
+
+    app.listen(port, () => {
+        console.log(`App is listening at http://localhost:${port}`);
+    });
+}
+
+start().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Unable to initialize Turso database:', message);
+    if (db) {
+        db.close();
+    }
+    process.exitCode = 1;
 });

@@ -14,10 +14,11 @@
   "description": "",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.1",
+    "@libsql/client": "^0.18.0",
     "@tanstack/table-core": "^9.3.1",
+    "dotenv": "^18.0.10",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
-    "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
