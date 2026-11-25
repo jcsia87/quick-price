@@ -1,14 +1,16 @@
 const express = require('express');
 const session = require('express-session');
-const { createClient } = require('@libsql/client');
+const sqlite3 = require('sqlite3').verbose();
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
-const { pathToFileURL } = require('url');
+const { Readable } = require('stream');
+const { pipeline } = require('stream/promises');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 const dbPath = path.join(__dirname, '.cache', 'judsondb.db');
-const tursoUrl = process.env.TURSO_DATABASE_URL || 'libsql://judsondb-jcsia87.aws-ap-southeast-1.turso.io';
 const hideMaterialCost =
     String(process.env.RENDER || '').toLowerCase() === 'true' ||
     Boolean(process.env.RENDER_SERVICE_ID);
@@ -40,7 +42,8 @@ function formatFriendlyDate(date) {
     return `${month} ${day}, ${year} ${hours}:${minutes}${suffix}`;
 }
 
-let db;
+let db = null;
+let dbLastModified = null;
 
 app.use('/vendor/fontawesome', express.static(path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free')));
 app.use('/vendor/tanstack-table-core', express.static(path.join(__dirname, 'node_modules', '@tanstack', 'table-core', 'dist')));
@@ -74,8 +77,11 @@ app.get('/check-auth', (req, res) => {
 
 app.get('/db-info', (req, res) => {
     try {
+        if (dbLastModified) {
+            return res.json({ createdAt: formatFriendlyDate(dbLastModified) });
+        }
         const stats = fs.statSync(dbPath);
-        const createdAt = stats.birthtime || stats.ctime || stats.mtime;
+        const createdAt = stats.mtime || stats.ctime || stats.birthtime;
         res.json({ createdAt: formatFriendlyDate(createdAt) });
     } catch (error) {
         console.error('Unable to read database file info:', error.message);
@@ -93,7 +99,7 @@ function requireAuth(req, res, next) {
 }
 
 // API endpoint to fetch filtered columns from "pricelist" (protected)
-app.get('/data', requireAuth, async (req, res) => {
+app.get('/data', requireAuth, (req, res) => {
     const search = (req.query.search || '').trim();
     const columns = hideMaterialCost
         ? 'Description, Wholesale, Retail'
@@ -104,31 +110,105 @@ app.get('/data', requireAuth, async (req, res) => {
         sql += ` WHERE Description LIKE ?`;
         params.push(`%${search}%`);
     }
-    try {
-        const result = await db.execute({ sql, args: params });
-        res.json(result.rows);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error('Turso query error:', message);
-        res.status(500).json({ error: message });
-    }
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+            console.error('SQLite error:', err.message);
+            res.status(500).json({ error: err.message });
+        } else {
+            res.json(rows);
+        }
+    });
 });
 
-async function start() {
-    const authToken = process.env.TURSO_AUTH_TOKEN;
-    if (!authToken) {
-        throw new Error('TURSO_AUTH_TOKEN must be set to connect to the Turso database.');
+function getR2Config() {
+    const endpoint = process.env.R2_ENDPOINT;
+    const bucket = process.env.R2_BUCKET;
+    const key = process.env.R2_OBJECT_KEY || 'judsondb.db';
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+
+    const missing = [];
+    if (!endpoint) missing.push('R2_ENDPOINT');
+    if (!bucket) missing.push('R2_BUCKET');
+    if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
+    if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
+
+    if (missing.length > 0) {
+        throw new Error(`Missing required R2 environment variables: ${missing.join(', ')}`);
     }
 
-    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-    const localDbUrl = pathToFileURL(dbPath).href.replace(/^file:\/\/\/([A-Za-z]:\/)/, 'file:$1');
-    db = createClient({
-        url: localDbUrl,
-        syncUrl: tursoUrl,
-        authToken
+    return {
+        endpoint: new URL(endpoint).origin,
+        bucket,
+        key,
+        accessKeyId,
+        secretAccessKey
+    };
+}
+
+async function downloadDatabaseFromR2() {
+    const { endpoint, bucket, key, accessKeyId, secretAccessKey } = getR2Config();
+    const s3 = new S3Client({
+        region: 'auto',
+        endpoint,
+        credentials: {
+            accessKeyId,
+            secretAccessKey
+        }
     });
-    await db.sync();
-    console.log('Synchronized local database with Turso.');
+
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    const tempDbPath = `${dbPath}.tmp`;
+
+    const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!response.Body) {
+        throw new Error(`R2 object "${key}" returned an empty body.`);
+    }
+
+    const bodyStream =
+        typeof response.Body.pipe === 'function'
+            ? response.Body
+            : Readable.fromWeb(response.Body.transformToWebStream());
+
+    try {
+        await pipeline(bodyStream, fs.createWriteStream(tempDbPath));
+    } catch (error) {
+        fs.rmSync(tempDbPath, { force: true });
+        throw error;
+    }
+
+    // Remove any stale SQLite journal files before swapping in the new DB
+    for (const suffix of ['-wal', '-shm', '-journal']) {
+        fs.rmSync(`${dbPath}${suffix}`, { force: true });
+    }
+    fs.renameSync(tempDbPath, dbPath);
+
+    if (response.LastModified) {
+        dbLastModified = new Date(response.LastModified);
+        fs.utimesSync(dbPath, dbLastModified, dbLastModified);
+    } else {
+        dbLastModified = null;
+    }
+
+    console.log(`Downloaded database from R2 (${bucket}/${key}).`);
+}
+
+function openLocalDatabase() {
+    return new Promise((resolve, reject) => {
+        const connection = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log('Connected to local SQLite database.');
+                resolve(connection);
+            }
+        });
+    });
+}
+
+async function start() {
+    await downloadDatabaseFromR2();
+    db = await openLocalDatabase();
 
     app.listen(port, () => {
         console.log(`App is listening at http://localhost:${port}`);
@@ -137,7 +217,7 @@ async function start() {
 
 start().catch((error) => {
     const message = error instanceof Error ? error.message : String(error);
-    console.error('Unable to initialize Turso database:', message);
+    console.error('Unable to initialize database:', message);
     if (db) {
         db.close();
     }
