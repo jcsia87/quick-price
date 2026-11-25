@@ -121,8 +121,9 @@ async function start() {
     }
 
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    const localDbUrl = pathToFileURL(dbPath).href.replace(/^file:\/\/\/([A-Za-z]:\/)/, 'file:$1');
     db = createClient({
-        url: pathToFileURL(dbPath).href,
+        url: localDbUrl,
         syncUrl: tursoUrl,
         authToken
     });
