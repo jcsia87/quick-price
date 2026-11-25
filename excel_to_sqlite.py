@@ -13,6 +13,7 @@ def excel_to_sqlite(excel_path):
 
     # Write to SQLite DB
     conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA journal_mode=WAL")
     df.to_sql("pricelist", conn, if_exists="replace", index=False)
     conn.close()
 
