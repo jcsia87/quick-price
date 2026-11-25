@@ -378,12 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
   renderColumnControls();
   renderTable();
 
-  // Hide both UIs and error initially
-  setAuthView(false);
-
-  // Check auth status on load
+  // Check auth status on load while both views remain hidden
   fetch('/check-auth', { credentials: 'include' })
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) throw new Error('Auth check failed');
+      return res.json();
+    })
     .then((data) => {
       applyMaterialCostVisibility(data.hideMaterialCost);
       if (data.authenticated) {
@@ -391,6 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         showLogin();
       }
+    })
+    .catch(() => {
+      showLogin();
     });
 
   loginForm.addEventListener('submit', function (e) {
